@@ -2154,6 +2154,12 @@ def get_ssh_proxy_command(
         namespace: Kubernetes namespace to use.
             Required for NODEPORT networking mode.
     """
+    # Check if API Server in same cluster as target pod
+    server_namespace = os.environ.get(
+        kubernetes_constants.KUBERNETES_IN_CLUSTER_NAMESPACE_ENV_VAR)
+    if server_namespace is not None and server_namespace == namespace:
+        # Return optimized command
+        return 'socat STDIO TCP:%h:%p'
     # Fetch IP to connect to for the jump svc
     ssh_jump_ip = get_external_ip(network_mode, context)
     assert private_key_path is not None, 'Private key path must be provided'
